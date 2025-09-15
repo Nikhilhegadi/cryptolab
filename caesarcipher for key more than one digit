@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    char inputFile[260], outputFile[260];
+    int key, choice, cont = 1;
+    while (cont) {
+        printf("Enter input filename: ");
+        if (scanf("%259s", inputFile) != 1) break;
+        printf("Enter output filename: ");
+        if (scanf("%259s", outputFile) != 1) break;
+        printf("Enter key: ");
+        if (scanf("%d", &key) != 1) break;
+
+        key = key % 26;       // normalize key
+        if (key < 0) key += 26;
+
+        printf("1. Encrypt\n2. Decrypt\nEnter choice: ");
+        if (scanf("%d", &choice) != 1) break;
+
+        FILE *fin = fopen(inputFile, "rb");
+        FILE *fout = fopen(outputFile, "wb");
+        if (!fin || !fout) {
+            printf("File error\n");
+            if (fin) fclose(fin);
+            if (fout) fclose(fout);
+            printf("Continue? (1-Yes / 0-No): ");
+            if (scanf("%d", &cont) != 1) break;
+            continue;
+        }
+
+        int c;
+        while ((c = fgetc(fin)) != EOF) {
+            unsigned char ch = (unsigned char)c;
+            if (ch >= 'a' && ch <= 'z') {
+                int v = ch - 'a';
+                v = (choice == 1) ? (v + key) : (v - key);
+                v = (v % 26 + 26) % 26;
+                fputc(v + 'a', fout);
+            } else if (ch >= 'A' && ch <= 'Z') {
+                int v = ch - 'A';
+                v = (choice == 1) ? (v + key) : (v - key);
+                v = (v % 26 + 26) % 26;
+                fputc(v + 'A', fout);
+            } else {
+                fputc(ch, fout);
+            }
+        }
+        fclose(fin);
+        fclose(fout);
+
+        printf("%s done. Saved in %s\n", choice == 1 ? "Encryption" : "Decryption", outputFile);
+        printf("Continue? (1-Yes / 0-No): ");
+        if (scanf("%d", &cont) != 1) break;
+    }
+    return 0;
+}
